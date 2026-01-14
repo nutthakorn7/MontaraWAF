@@ -1,68 +1,30 @@
-# APISIX Routes and Upstreams Configuration
+# APISIX Standalone Mode Configuration
+# This file must end with #END marker
 
 routes:
-  # Default route - protected by CrowdSec + WAF
-  - uri: /*
+  - id: 1
+    uri: /*
     name: default-route
     plugins:
-      # CrowdSec Bouncer - checks IP against decisions
-      crowdsec-bouncer:
-        api_url: http://crowdsec:8080
-        api_key: ${CROWDSEC_BOUNCER_KEY}
-        ban_response_code: 403
-        cache_ttl: 60
-      
-      # WAF Plugin (Coraza with OWASP CRS)
-      waf:
-        rules: /usr/local/apisix/conf/coraza/coraza.conf
-      
       # Rate Limiting
       limit-req:
         rate: 100
         burst: 50
         key: remote_addr
         rejected_code: 429
-      
-      # Request validation
-      request-validation:
-        header_schema:
-          type: object
-        
       # Prometheus metrics
       prometheus:
         prefer_name: true
-
     upstream:
       type: roundrobin
       nodes:
-        "dashboard:3000": 1
+        "127.0.0.1:3000": 1
 
 upstreams:
   - id: 1
-    name: dashboard-upstream
+    name: backend
     type: roundrobin
     nodes:
-      "dashboard:3000": 1
-    checks:
-      active:
-        http_path: /api/health
-        healthy:
-          interval: 5
-          successes: 2
-        unhealthy:
-          interval: 1
-          http_failures: 3
+      "127.0.0.1:3000": 1
 
-# Global rules applied to all routes
-global_rules:
-  - id: 1
-    plugins:
-      # Request ID for tracing
-      request-id:
-        header_name: X-Request-ID
-        include_in_response: true
-      
-      # Real IP from proxy headers
-      real-ip:
-        source: http_x_forwarded_for
-        recursive: true
+#END
