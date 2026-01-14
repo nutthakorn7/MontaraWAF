@@ -7,6 +7,7 @@ interface EndpointConfig {
     rateLimit: number; // requests per second
     burstSize: number;
     requiresAuth: boolean;
+    requiredScopes?: string[]; // Scope-based access
     schema?: Record<string, any>;
     enabled: boolean;
     discoveredAt?: string;
@@ -21,6 +22,7 @@ interface APIKey {
     rateLimit: number;
     enabled: boolean;
     createdAt: string;
+    expiresAt?: string; // Key rotation/expiry
     lastUsed?: string;
     usageCount: number;
 }
@@ -333,6 +335,171 @@ export class APIProtectionService {
             requestsLastHour,
         };
     }
+
+    // === NEW ENHANCEMENTS ===
+
+    // 1. APISIX Sync - Sync rate limits to APISIX
+    async syncToAPISIX(): Promise<boolean> {
+        try {
+            const APISIX_ADMIN_URL = process.env.APISIX_ADMIN_URL || 'http://localhost:9180';
+            const APISIX_ADMIN_KEY = process.env.APISIX_ADMIN_KEY || 'montara-admin-key';
+
+            // Get all enabled endpoints and create routes
+            for (const endpoint of this.getEndpoints().filter(e => e.enabled)) {
+                const routeId = Buffer.from(`${endpoint.method}:${endpoint.path}`).toString('base64').slice(0, 20);
+
+                const routeConfig = {
+                    uri: endpoint.path.replace('*', '/*'),
+                    methods: endpoint.method === '*' ? ['GET', 'POST', 'PUT', 'DELETE'] : [endpoint.method],
+                    plugins: {
+                        'limit-req': {
+                            rate: endpoint.rateLimit,
+                            burst: endpoint.burstSize,
+                            key: 'remote_addr',
+                            rejected_code: 429,
+                            rejected_msg: JSON.stringify({ error: 'Rate limit exceeded', type: 'api_rate_limit' }),
+                        },
+                    },
+                    upstream: {
+                        type: 'roundrobin',
+                        nodes: { 'localhost:3001': 1 },
+                    },
+                };
+
+                await fetch(`${APISIX_ADMIN_URL}/apisix/admin/routes/${routeId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-API-KEY': APISIX_ADMIN_KEY,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(routeConfig),
+                });
+            }
+
+            console.log('API Protection synced to APISIX');
+            return true;
+        } catch (error) {
+            console.error('APISIX sync error:', error);
+            return false;
+        }
+    }
+
+    // 2. Usage Analytics - Get usage stats per key/endpoint
+    getUsageAnalytics(): {
+        byEndpoint: { path: string; hits: number; rate: number }[];
+        byAPIKey: { name: string; usage: number; lastUsed: string | null }[];
+        hourlyTraffic: { hour: number; count: number }[];
+    } {
+        const hourAgo = Date.now() - 3600000;
+        const recentLogs = this.requestLogs.filter(r => r.timestamp > hourAgo);
+
+        // By endpoint
+        const endpointHits: Map<string, number> = new Map();
+        for (const log of recentLogs) {
+            const key = `${log.method}:${log.path}`;
+            endpointHits.set(key, (endpointHits.get(key) || 0) + 1);
+        }
+        const byEndpoint = Array.from(endpointHits.entries())
+            .map(([path, hits]) => ({ path, hits, rate: Math.round(hits / 60) }))
+            .sort((a, b) => b.hits - a.hits)
+            .slice(0, 10);
+
+        // By API key
+        const byAPIKey = Array.from(this.apiKeys.values()).map(k => ({
+            name: k.name,
+            usage: k.usageCount,
+            lastUsed: k.lastUsed || null,
+        })).sort((a, b) => b.usage - a.usage);
+
+        // Hourly traffic (last 24 hours)
+        const hourlyTraffic: { hour: number; count: number }[] = [];
+        for (let i = 0; i < 24; i++) {
+            const hourStart = Date.now() - ((23 - i) * 3600000);
+            const hourEnd = hourStart + 3600000;
+            const count = this.requestLogs.filter(r => r.timestamp >= hourStart && r.timestamp < hourEnd).length;
+            hourlyTraffic.push({ hour: i, count });
+        }
+
+        return { byEndpoint, byAPIKey, hourlyTraffic };
+    }
+
+    // 3. Rate Limit Headers - Generate headers for response
+    getRateLimitHeaders(method: string, path: string, ip: string): Record<string, string> {
+        const result = this.checkRateLimit(method, path, ip);
+        return {
+            'X-RateLimit-Limit': String(result.remaining + (result.allowed ? 0 : 1)),
+            'X-RateLimit-Remaining': String(result.remaining),
+            'X-RateLimit-Reset': String(Math.ceil(Date.now() / 1000) + Math.ceil(result.resetIn / 1000)),
+        };
+    }
+
+    // 4. Check key expiry
+    isKeyExpired(key: string): boolean {
+        const apiKey = this.apiKeys.get(key);
+        if (!apiKey || !apiKey.expiresAt) return false;
+        return new Date(apiKey.expiresAt) < new Date();
+    }
+
+    // 5. Rotate API key - Create new key with same config, disable old
+    rotateAPIKey(id: string, expiresIn?: number): APIKey | null {
+        let oldKey: APIKey | undefined;
+        let oldKeyString: string = '';
+
+        for (const [key, apiKey] of this.apiKeys) {
+            if (apiKey.id === id) {
+                oldKey = apiKey;
+                oldKeyString = key;
+                break;
+            }
+        }
+
+        if (!oldKey) return null;
+
+        // Create new key with same config
+        const newKey = this.createAPIKey(oldKey.name, oldKey.scopes, oldKey.rateLimit);
+
+        // Set expiry if provided (in hours)
+        if (expiresIn) {
+            newKey.expiresAt = new Date(Date.now() + expiresIn * 3600000).toISOString();
+        }
+
+        // Disable old key
+        oldKey.enabled = false;
+
+        return newKey;
+    }
+
+    // Create API key with expiry
+    createAPIKeyWithExpiry(name: string, scopes: string[], rateLimit: number, expiresInHours: number): APIKey {
+        const key = this.createAPIKey(name, scopes, rateLimit);
+        key.expiresAt = new Date(Date.now() + expiresInHours * 3600000).toISOString();
+        return key;
+    }
+
+    // Check scope-based access
+    checkEndpointAccess(method: string, path: string, apiKey?: string): { allowed: boolean; error?: string } {
+        const endpoint = this.getEndpoint(method, path);
+        if (!endpoint) return { allowed: true };
+
+        if (!endpoint.requiresAuth) return { allowed: true };
+        if (!apiKey) return { allowed: false, error: 'API key required' };
+
+        const key = this.apiKeys.get(apiKey);
+        if (!key) return { allowed: false, error: 'Invalid API key' };
+        if (!key.enabled) return { allowed: false, error: 'API key disabled' };
+        if (this.isKeyExpired(apiKey)) return { allowed: false, error: 'API key expired' };
+
+        // Check required scopes
+        if (endpoint.requiredScopes && endpoint.requiredScopes.length > 0) {
+            const hasScope = endpoint.requiredScopes.some(s => key.scopes.includes(s) || key.scopes.includes('admin'));
+            if (!hasScope) {
+                return { allowed: false, error: `Missing required scope: ${endpoint.requiredScopes.join(' or ')}` };
+            }
+        }
+
+        return { allowed: true };
+    }
 }
 
 export const apiProtection = new APIProtectionService();
+
