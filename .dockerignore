@@ -1,0 +1,15 @@
+# Ignore files for Docker build
+node_modules
+.next
+.git
+.gitignore
+*.md
+!README.md
+.env*.local
+.storybook
+*.stories.tsx
+*.test.tsx
+*.spec.tsx
+coverage
+.nyc_output
+.turbo
