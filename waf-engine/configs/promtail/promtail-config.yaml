@@ -1,0 +1,76 @@
+# Promtail Configuration - Log Collector for Loki
+# Collects logs from APISIX, CrowdSec, and Coraza
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # APISIX Access Logs
+  - job_name: apisix-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: apisix
+          type: access
+          __path__: /var/log/apisix/access.log
+    pipeline_stages:
+      - json:
+          expressions:
+            client_ip: client_ip
+            route_id: route_id
+            status: status
+            latency: latency
+            request_uri: request
+      - labels:
+          status:
+          route_id:
+
+  # APISIX Error Logs
+  - job_name: apisix-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: apisix
+          type: error
+          __path__: /var/log/apisix/error.log
+
+  # CrowdSec Logs
+  - job_name: crowdsec
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: crowdsec
+          __path__: /var/log/crowdsec/*.log
+    pipeline_stages:
+      - regex:
+          expression: 'level=(?P<level>\w+)'
+      - labels:
+          level:
+
+  # Coraza WAF Audit Logs
+  - job_name: coraza-waf
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: coraza
+          type: audit
+          __path__: /var/log/coraza/audit.log
+    pipeline_stages:
+      - multiline:
+          firstline: '--[a-f0-9]+-'
+          max_wait_time: 3s
+      - regex:
+          expression: '\[id "(?P<rule_id>\d+)"\]'
+      - labels:
+          rule_id:

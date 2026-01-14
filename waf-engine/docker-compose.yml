@@ -144,10 +144,42 @@ services:
   loki:
     image: grafana/loki:2.9.0
     container_name: montara-loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./configs/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
     ports:
       - "3100:3100"
+    networks:
+      - montara-network
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: montara-promtail
     volumes:
-      - loki_data:/loki
+      - ./configs/promtail/promtail-config.yaml:/etc/promtail/config.yaml:ro
+      - /var/log:/var/log:ro
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+    networks:
+      - montara-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: montara-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-montara123}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
     networks:
       - montara-network
 
@@ -184,3 +216,4 @@ volumes:
   etcd_data:
   prometheus_data:
   loki_data:
+  grafana_data:

@@ -1,0 +1,108 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Requests per Second",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(apisix_http_requests_total[5m])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Blocked Requests",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum(increase(apisix_http_status{code=~\"403|429\"}[24h]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "CrowdSec Decisions",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "crowdsec_decisions",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "HTTP Status Codes",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum by (code) (increase(apisix_http_status[1h]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Recent WAF Events",
+      "type": "logs",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "datasource": "Loki",
+          "expr": "{job=\"coraza\"}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Request Latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, rate(apisix_http_latency_bucket[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "CrowdSec Alerts",
+      "type": "logs",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "datasource": "Loki",
+          "expr": "{job=\"crowdsec\"}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["waf", "security", "montara"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Montara WAF Overview",
+  "uid": "montara-waf-overview",
+  "version": 1
+}
