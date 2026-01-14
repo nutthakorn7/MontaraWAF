@@ -7,13 +7,22 @@ routes:
     uri: /*
     name: waf-protected-route
     plugins:
-      # Rate Limiting - Block excessive requests
+      # DDoS Protection - Rate Limiting
       limit-req:
         rate: 100
-        burst: 50
+        burst: 200
         key: remote_addr
         rejected_code: 429
-        rejected_msg: '{"error": "Rate limit exceeded", "code": 429}'
+        rejected_msg: '{"error": "DDoS Protection: Rate limit exceeded", "code": 429, "type": "rate_limit"}'
+      
+      # DDoS Protection - Concurrent Connection Limit
+      limit-conn:
+        conn: 50
+        burst: 100
+        default_conn_delay: 0.1
+        key: remote_addr
+        rejected_code: 503
+        rejected_msg: '{"error": "DDoS Protection: Too many connections", "code": 503, "type": "conn_limit"}'
       
       # IP Restriction - Block specific IPs
       ip-restriction:
