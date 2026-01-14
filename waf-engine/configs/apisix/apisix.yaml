@@ -192,6 +192,125 @@ routes:
                   return ngx.exit(403)
                 end
               end
+              
+              -- Remote Code Execution (RCE) patterns - OWASP 932100
+              local rce_patterns = {
+                "system%s*%(",
+                "exec%s*%(",
+                "shell_exec%s*%(",
+                "passthru%s*%(",
+                "popen%s*%(",
+                "proc_open%s*%(",
+                "pcntl_exec%s*%(",
+                "eval%s*%(",
+                "assert%s*%(",
+                "preg_replace.*%/e",
+                "create_function%s*%(",
+                "`.*`",
+                "%$%(.*%)",
+                "os%.system",
+                "subprocess%.",
+                "runtime%.exec",
+                "processbuilder",
+                "%|%s*bash",
+                "%|%s*sh",
+                "%|%s*cmd",
+                ";&",
+                "%|%|",
+                "nc%s+%-e",
+                "bash%s+%-i",
+                "/bin/bash",
+                "/bin/sh",
+                "powershell",
+                "cmd%.exe"
+              }
+              
+              for _, pattern in ipairs(rce_patterns) do
+                if string.match(check_string, pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "Remote Code Execution blocked by WAF", "code": 403, "rule": "932100"}')
+                  return ngx.exit(403)
+                end
+              end
+              
+              -- Local File Inclusion (LFI) patterns - OWASP 930100
+              local lfi_patterns = {
+                "file://",
+                "php://input",
+                "php://filter",
+                "php://data",
+                "expect://",
+                "zip://",
+                "phar://",
+                "data:text/html",
+                "data:application",
+                "/proc/self",
+                "/proc/version",
+                "/var/log/",
+                "/var/www/",
+                "boot%.ini",
+                "win%.ini",
+                "web%.config",
+                "%.htaccess",
+                "%.htpasswd",
+                "httpd%.conf",
+                "nginx%.conf",
+                "my%.cnf",
+                "php%.ini"
+              }
+              
+              for _, pattern in ipairs(lfi_patterns) do
+                if string.match(check_string, pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "Local File Inclusion blocked by WAF", "code": 403, "rule": "930110"}')
+                  return ngx.exit(403)
+                end
+              end
+              
+              -- Remote File Inclusion (RFI) patterns - OWASP 931100  
+              local rfi_patterns = {
+                "http://[^%s]+%.php",
+                "http://[^%s]+%.txt",
+                "https://[^%s]+%.php",
+                "ftp://",
+                "dict://",
+                "gopher://",
+                "ldap://",
+                "sftp://",
+                "tftp://"
+              }
+              
+              for _, pattern in ipairs(rfi_patterns) do
+                if string.match(check_string, pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "Remote File Inclusion blocked by WAF", "code": 403, "rule": "931100"}')
+                  return ngx.exit(403)
+                end
+              end
+              
+              -- Protocol Attack patterns - OWASP 921000
+              local protocol_patterns = {
+                "%%00",
+                "%%0d%%0a",
+                "%%0a",
+                "%%0d",
+                "\\x00",
+                "\\r\\n",
+                "content%-type:.*multipart",
+                "transfer%-encoding:.*chunked"
+              }
+              
+              for _, pattern in ipairs(protocol_patterns) do
+                if string.match(check_string, pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "Protocol Attack blocked by WAF", "code": 403, "rule": "921000"}')
+                  return ngx.exit(403)
+                end
+              end
             end
     
     upstream:
