@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { anomalyDetection } from '@/services/ai/anomaly-detection';
 import { botClassifier } from '@/services/ai/bot-classifier';
 import { autoTuning } from '@/services/ai/auto-tuning';
+import { tensorflowML, extractMLFeatures } from '@/services/ai/tensorflow-ml';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -32,6 +33,13 @@ export async function GET(request: NextRequest) {
         });
     }
 
+    // Get ML model status
+    if (service === 'ml') {
+        return NextResponse.json({
+            status: tensorflowML.getStatus(),
+        });
+    }
+
     // Default: return all AI stats
     return NextResponse.json({
         status: 'active',
@@ -46,6 +54,9 @@ export async function GET(request: NextRequest) {
             },
             autoTuning: {
                 ...autoTuning.getStats(),
+            },
+            tensorflowML: {
+                ...tensorflowML.getStatus(),
             },
         },
         updatedAt: new Date().toISOString(),
