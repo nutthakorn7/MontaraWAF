@@ -93,6 +93,50 @@ export async function GET(request: NextRequest) {
             // Initial poll
             await pollCrowdSec();
 
+            // Poll Coraza logs for WAF events
+            let corazaLogWatcher: any = null;
+            try {
+                const { CorazaLogWatcher } = await import('@/waf-engine/services/coraza-log-watcher');
+                corazaLogWatcher = new CorazaLogWatcher(CORAZA_LOG_PATH);
+            } catch (e) {
+                console.log('Coraza log watcher not available in this environment');
+            }
+
+            const pollCoraza = async () => {
+                if (!corazaLogWatcher) return;
+
+                try {
+                    const events = await corazaLogWatcher.getNewEvents();
+                    for (const logEvent of events) {
+                        const event: WAFEvent = {
+                            id: logEvent.id,
+                            timestamp: logEvent.timestamp,
+                            type: 'waf',
+                            severity: logEvent.severity,
+                            source: 'coraza',
+                            sourceIp: logEvent.clientIp,
+                            action: logEvent.action,
+                            rule: {
+                                id: logEvent.ruleId,
+                                name: logEvent.ruleName,
+                                category: logEvent.category,
+                            },
+                            request: {
+                                method: logEvent.method,
+                                uri: logEvent.uri,
+                            },
+                            message: logEvent.message,
+                        };
+                        sendEvent(event);
+                    }
+                } catch (error) {
+                    console.error('Coraza poll error:', error);
+                }
+            };
+
+            // Poll Coraza every 2 seconds
+            const corazaInterval = setInterval(pollCoraza, 2000);
+
             // Generate mock events for demo (remove in production)
             if (process.env.NODE_ENV === 'development') {
                 const mockInterval = setInterval(() => {
@@ -108,6 +152,7 @@ export async function GET(request: NextRequest) {
             request.signal.addEventListener('abort', () => {
                 clearInterval(pingInterval);
                 clearInterval(crowdsecInterval);
+                clearInterval(corazaInterval);
                 controller.close();
             });
         },
