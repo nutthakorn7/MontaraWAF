@@ -1,15 +1,9 @@
 # CrowdSec Acquisition Configuration
 # Defines where CrowdSec should read logs from
 
+# Watch APISIX access logs (mounted from APISIX container)
 filenames:
-  - /var/log/nginx/access.log
-  - /var/log/nginx/error.log
-labels:
-  type: nginx
----
-# APISIX logs (via stdout)
-source: docker
-container_name:
-  - montara-apisix
+  - /var/log/apisix/access.log
+  - /var/log/apisix/error.log
 labels:
   type: nginx
