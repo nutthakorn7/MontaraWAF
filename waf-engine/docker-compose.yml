@@ -1,0 +1,185 @@
+# Montara WAF Engine - Docker Compose
+# Stack: CrowdSec + APISIX + Coraza + PostgreSQL + Redis
+
+version: '3.8'
+
+services:
+  # ======================
+  # Database Layer
+  # ======================
+  postgres:
+    image: postgres:16-alpine
+    container_name: montara-postgres
+    environment:
+      POSTGRES_USER: montara
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-montara_secret}
+      POSTGRES_DB: montara_waf
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U montara"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - montara-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: montara-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - montara-network
+
+  # ======================
+  # CrowdSec - DDoS & Bot Protection
+  # ======================
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: montara-crowdsec
+    environment:
+      COLLECTIONS: "crowdsecurity/nginx crowdsecurity/http-cve crowdsecurity/base-http-scenarios"
+      GID: "${GID:-1000}"
+    volumes:
+      - crowdsec_config:/etc/crowdsec
+      - crowdsec_data:/var/lib/crowdsec/data
+      - ./configs/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+    ports:
+      - "8080:8080"  # Local API
+      - "6060:6060"  # Prometheus metrics
+    healthcheck:
+      test: ["CMD", "cscli", "version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - montara-network
+
+  # CrowdSec Bouncer for APISIX
+  crowdsec-bouncer:
+    image: crowdsecurity/lua-bouncer-plugin:latest
+    container_name: montara-crowdsec-bouncer
+    environment:
+      API_URL: http://crowdsec:8080
+      API_KEY: ${CROWDSEC_BOUNCER_KEY:-}
+    depends_on:
+      - crowdsec
+    networks:
+      - montara-network
+
+  # ======================
+  # APISIX - API Gateway + Coraza WAF
+  # ======================
+  apisix:
+    image: apache/apisix:3.8.0-debian
+    container_name: montara-apisix
+    volumes:
+      - ./configs/apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./configs/apisix/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+      - ./configs/coraza:/usr/local/apisix/conf/coraza:ro
+    ports:
+      - "9080:9080"   # HTTP
+      - "9443:9443"   # HTTPS
+      - "9180:9180"   # Admin API
+      - "9091:9091"   # Prometheus
+    depends_on:
+      - etcd
+      - crowdsec
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9080/apisix/admin/routes", "-H", "X-API-KEY: ${APISIX_ADMIN_KEY:-edd1c9f034335f136f87ad84b625c8f1}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - montara-network
+
+  etcd:
+    image: bitnami/etcd:3.5
+    container_name: montara-etcd
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+    volumes:
+      - etcd_data:/bitnami/etcd
+    ports:
+      - "2379:2379"
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - montara-network
+
+  # ======================
+  # Monitoring
+  # ======================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: montara-prometheus
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - montara-network
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: montara-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    networks:
+      - montara-network
+
+  # ======================
+  # Dashboard (Next.js)
+  # ======================
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: montara-dashboard
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:9080
+      DATABASE_URL: postgres://montara:${POSTGRES_PASSWORD:-montara_secret}@postgres:5432/montara_waf
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - apisix
+    networks:
+      - montara-network
+
+networks:
+  montara-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  crowdsec_config:
+  crowdsec_data:
+  etcd_data:
+  prometheus_data:
+  loki_data:

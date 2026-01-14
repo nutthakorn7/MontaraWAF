@@ -1,0 +1,82 @@
+# APISIX Configuration
+apisix:
+  node_listen: 9080
+  enable_ipv6: false
+  enable_admin: true
+  admin_key:
+    - name: admin
+      key: edd1c9f034335f136f87ad84b625c8f1
+      role: admin
+
+etcd:
+  host:
+    - "http://etcd:2379"
+  prefix: "/apisix"
+  timeout: 30
+
+plugin_attr:
+  prometheus:
+    export_addr:
+      ip: "0.0.0.0"
+      port: 9091
+
+plugins:
+  - real-ip
+  - client-control
+  - proxy-control
+  - request-id
+  - zipkin
+  - ext-plugin-pre-req
+  - ext-plugin-post-req
+  - ext-plugin-post-resp
+  - waf  # Coraza WAF plugin
+  - limit-req
+  - limit-count
+  - limit-conn
+  - ip-restriction
+  - ua-restriction
+  - referer-restriction
+  - uri-blocker
+  - request-validation
+  - openid-connect
+  - authz-keycloak
+  - authz-casdoor
+  - wolf-rbac
+  - ldap-auth
+  - hmac-auth
+  - basic-auth
+  - jwt-auth
+  - key-auth
+  - consumer-restriction
+  - forward-auth
+  - opa
+  - authz-casbin
+  - cors
+  - fault-injection
+  - mocking
+  - serverless-pre-function
+  - serverless-post-function
+  - azure-functions
+  - aws-lambda
+  - grpc-transcode
+  - grpc-web
+  - http-dubbo
+  - proxy-mirror
+  - proxy-rewrite
+  - api-breaker
+  - traffic-split
+  - redirect
+  - response-rewrite
+  - kafka-logger
+  - http-logger
+  - sls-logger
+  - tcp-logger
+  - udp-logger
+  - syslog
+  - log-rotate
+  - error-log-logger
+  - prometheus
+  - node-status
+  - datadog
+  - echo
+  - example-plugin
