@@ -5,9 +5,9 @@ routes:
   - uri: /*
     name: default-route
     plugins:
-      # WAF Plugin (Coraza)
+      # WAF Plugin (Coraza with OWASP CRS)
       waf:
-        rules: /usr/local/apisix/conf/coraza/rules.conf
+        rules: /usr/local/apisix/conf/coraza/coraza.conf
       
       # Rate Limiting
       limit-req:
