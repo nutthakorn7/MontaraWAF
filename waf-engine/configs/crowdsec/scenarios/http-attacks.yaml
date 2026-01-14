@@ -1,0 +1,41 @@
+# CrowdSec Local Scenarios
+# Custom detection scenarios for Montara WAF
+
+type: leaky
+name: montara/http-bruteforce
+description: "Detect HTTP brute force attacks"
+filter: "evt.Meta.log_type == 'http_access-log'"
+leakspeed: "10s"
+capacity: 10
+groupby: "evt.Meta.source_ip"
+blackhole: 2m
+labels:
+  service: http
+  type: bruteforce
+  remediation: true
+---
+type: leaky
+name: montara/http-scanning
+description: "Detect HTTP scanning/enumeration"
+filter: "evt.Meta.log_type == 'http_access-log' && evt.Meta.http_status in ['404', '403', '401']"
+leakspeed: "5s"
+capacity: 20
+groupby: "evt.Meta.source_ip"
+blackhole: 5m
+labels:
+  service: http
+  type: scan
+  remediation: true
+---
+type: leaky
+name: montara/api-abuse
+description: "Detect API abuse patterns"
+filter: "evt.Meta.log_type == 'http_access-log' && evt.Parsed.request_uri startsWith '/api/'"
+leakspeed: "1s"
+capacity: 50
+groupby: "evt.Meta.source_ip"
+blackhole: 10m
+labels:
+  service: api
+  type: abuse
+  remediation: true

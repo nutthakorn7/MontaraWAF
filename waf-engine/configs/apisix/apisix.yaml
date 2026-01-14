@@ -1,10 +1,17 @@
 # APISIX Routes and Upstreams Configuration
 
 routes:
-  # Default route - protected by WAF
+  # Default route - protected by CrowdSec + WAF
   - uri: /*
     name: default-route
     plugins:
+      # CrowdSec Bouncer - checks IP against decisions
+      crowdsec-bouncer:
+        api_url: http://crowdsec:8080
+        api_key: ${CROWDSEC_BOUNCER_KEY}
+        ban_response_code: 403
+        cache_ttl: 60
+      
       # WAF Plugin (Coraza with OWASP CRS)
       waf:
         rules: /usr/local/apisix/conf/coraza/coraza.conf
