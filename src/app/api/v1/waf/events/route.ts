@@ -96,11 +96,57 @@ export async function GET(request: NextRequest) {
             // Poll Coraza logs for WAF events
             let corazaLogWatcher: any = null;
             try {
-                const { CorazaLogWatcher } = await import('@/waf-engine/services/coraza-log-watcher');
+                const { CorazaLogWatcher } = await import('@/services/coraza-log-watcher');
                 corazaLogWatcher = new CorazaLogWatcher(CORAZA_LOG_PATH);
             } catch (e) {
-                console.log('Coraza log watcher not available in this environment');
+                console.log('Coraza log watcher not available:', (e as Error).message);
             }
+
+            // APISIX Log Reader for real WAF block events
+            let apisixLogReader: any = null;
+            try {
+                const { apisixLogReader: reader } = await import('@/services/apisix-log-reader');
+                apisixLogReader = reader;
+            } catch (e) {
+                console.log('APISIX log reader not available:', (e as Error).message);
+            }
+
+            // Poll APISIX logs for WAF block events
+            const pollAPISIX = async () => {
+                if (!apisixLogReader) return;
+
+                try {
+                    const events = await apisixLogReader.getRecentEvents('30s');
+                    for (const logEvent of events) {
+                        const event: WAFEvent = {
+                            id: logEvent.id,
+                            timestamp: logEvent.timestamp,
+                            type: 'waf',
+                            severity: logEvent.severity,
+                            source: 'apisix-waf',
+                            sourceIp: logEvent.clientIp,
+                            action: logEvent.action,
+                            rule: {
+                                id: logEvent.rule,
+                                name: logEvent.message,
+                                category: logEvent.type.toUpperCase(),
+                            },
+                            request: {
+                                method: 'GET',
+                                uri: logEvent.uri,
+                            },
+                            message: logEvent.message,
+                        };
+                        sendEvent(event);
+                    }
+                } catch (error) {
+                    // Silent fail - Docker may not be available
+                }
+            };
+
+            // Poll APISIX every 5 seconds
+            const apisixInterval = setInterval(pollAPISIX, 5000);
+            await pollAPISIX();
 
             const pollCoraza = async () => {
                 if (!corazaLogWatcher) return;
