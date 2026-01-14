@@ -6,7 +6,7 @@ import {
     WAFPolicy,
     validatePolicy,
     policiesToCorazaConfig
-} from '@/waf-engine/services/policy-service';
+} from '@/services/policy-service';
 import * as fs from 'fs/promises';
 
 // Shared policies store (in production, use database)

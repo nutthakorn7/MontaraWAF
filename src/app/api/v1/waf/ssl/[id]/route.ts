@@ -1,7 +1,7 @@
 // SSL Certificate Individual Routes
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SSLManagementService } from '@/waf-engine/services/ssl-management-service';
+import { SSLManagementService } from '@/services/ssl-management-service';
 
 function getService(): SSLManagementService {
     return new SSLManagementService();

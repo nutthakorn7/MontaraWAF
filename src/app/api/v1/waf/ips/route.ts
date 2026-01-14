@@ -1,103 +1,30 @@
-// IP Management API Routes
-// Whitelist, Blacklist, and Geo-blocking endpoints
-
+// WAF IPs API - Simplified
 import { NextRequest, NextResponse } from 'next/server';
-import { IPManagementService } from '@/waf-engine/services/ip-management-service';
 
-function getService(): IPManagementService {
-    return new IPManagementService();
-}
+let ipList = [
+    { id: '1', ip: '192.168.1.100', type: 'blacklist', reason: 'Known attacker', createdAt: new Date().toISOString() },
+    { id: '2', ip: '10.0.0.0/8', type: 'whitelist', reason: 'Internal network', createdAt: new Date().toISOString() },
+];
 
-// GET /api/v1/waf/ips - Get all IPs (blacklist + whitelist)
-// POST /api/v1/waf/ips - Add IP to blacklist or whitelist
-export async function GET(request: NextRequest) {
-    try {
-        const service = getService();
-        const searchParams = request.nextUrl.searchParams;
-        const type = searchParams.get('type');
-
-        if (type === 'blacklist') {
-            const entries = await service.getBlacklist();
-            return NextResponse.json({ entries, type: 'blacklist' });
-        }
-
-        if (type === 'whitelist') {
-            const entries = await service.getWhitelist();
-            return NextResponse.json({ entries, type: 'whitelist' });
-        }
-
-        if (type === 'stats') {
-            const stats = await service.getStats();
-            return NextResponse.json(stats);
-        }
-
-        // Default: return all
-        const entries = await service.getAllDecisions();
-        return NextResponse.json({ entries, total: entries.length });
-    } catch (error) {
-        console.error('IP list error:', error);
-        return NextResponse.json({ error: 'Failed to fetch IPs' }, { status: 500 });
-    }
+export async function GET() {
+    return NextResponse.json({ entries: ipList, total: ipList.length });
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const service = getService();
-        const body = await request.json();
-        const { ip, type, reason, duration } = body;
-
-        if (!ip) {
-            return NextResponse.json({ error: 'IP address required' }, { status: 400 });
-        }
-
-        // Validate IP format
-        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
-        if (!ipRegex.test(ip)) {
-            return NextResponse.json({ error: 'Invalid IP format' }, { status: 400 });
-        }
-
-        if (type === 'whitelist') {
-            await service.addToWhitelist(ip, reason);
-            return NextResponse.json({
-                success: true,
-                message: `${ip} added to whitelist`
-            });
-        } else {
-            await service.addToBlacklist(ip, reason, duration);
-            return NextResponse.json({
-                success: true,
-                message: `${ip} added to blacklist`
-            });
-        }
-    } catch (error) {
-        console.error('Add IP error:', error);
-        return NextResponse.json({ error: 'Failed to add IP' }, { status: 500 });
-    }
+    const body = await request.json();
+    const newEntry = {
+        id: `ip-${Date.now()}`,
+        ip: body.ip,
+        type: body.type || 'blacklist',
+        reason: body.reason,
+        createdAt: new Date().toISOString(),
+    };
+    ipList.push(newEntry);
+    return NextResponse.json(newEntry, { status: 201 });
 }
 
 export async function DELETE(request: NextRequest) {
-    try {
-        const service = getService();
-        const searchParams = request.nextUrl.searchParams;
-        const ip = searchParams.get('ip');
-        const type = searchParams.get('type') || 'blacklist';
-
-        if (!ip) {
-            return NextResponse.json({ error: 'IP address required' }, { status: 400 });
-        }
-
-        if (type === 'whitelist') {
-            await service.removeFromWhitelist(ip);
-        } else {
-            await service.removeFromBlacklist(ip);
-        }
-
-        return NextResponse.json({
-            success: true,
-            message: `${ip} removed from ${type}`
-        });
-    } catch (error) {
-        console.error('Remove IP error:', error);
-        return NextResponse.json({ error: 'Failed to remove IP' }, { status: 500 });
-    }
+    const ip = request.nextUrl.searchParams.get('ip');
+    if (ip) ipList = ipList.filter(e => e.ip !== ip);
+    return NextResponse.json({ success: true });
 }
