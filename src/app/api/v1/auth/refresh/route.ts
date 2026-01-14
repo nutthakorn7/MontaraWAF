@@ -8,7 +8,14 @@ import {
 
 export async function POST(request: NextRequest) {
     try {
-        const { refresh_token } = await request.json();
+        let refresh_token = '';
+        try {
+            const body = await request.json();
+            refresh_token = body.refresh_token;
+        } catch {
+            // Check cookie if no body
+            refresh_token = request.cookies.get('refreshToken')?.value || '';
+        }
 
         if (!refresh_token) {
             return NextResponse.json(
