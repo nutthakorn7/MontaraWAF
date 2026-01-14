@@ -1,30 +1,153 @@
-# APISIX Standalone Mode Configuration
-# This file must end with #END marker
+# APISIX Routes Configuration - WAF Blocking Mode
+# apisix.yaml for standalone mode with security plugins
 
 routes:
+  # Main WAF-protected route
   - id: 1
     uri: /*
-    name: default-route
+    name: waf-protected-route
     plugins:
-      # Rate Limiting
+      # Rate Limiting - Block excessive requests
       limit-req:
         rate: 100
         burst: 50
         key: remote_addr
         rejected_code: 429
+        rejected_msg: '{"error": "Rate limit exceeded", "code": 429}'
+      
+      # IP Restriction - Block specific IPs
+      ip-restriction:
+        blacklist:
+          - "0.0.0.0/32"  # Placeholder - add real IPs via API
+        message: '{"error": "IP blocked by WAF", "code": 403}'
+      
+      # User-Agent Restriction - Block bad bots
+      ua-restriction:
+        denylist:
+          - "curl*"
+          - "python-requests*"
+          - "Go-http-client*"
+          - "Wget*"
+          - "sqlmap*"
+          - "Nikto*"
+          - "dirbuster*"
+          - "masscan*"
+          - "nmap*"
+          - "zgrab*"
+          - "MJ12bot*"
+          - "AhrefsBot*"
+          - "SemrushBot*"
+          - "DotBot*"
+        bypass_missing: false
+        message: '{"error": "Bot blocked by WAF", "code": 403}'
+      
+      # Request validation
+      request-validation:
+        header_schema:
+          type: object
+        rejected_code: 400
+      
       # Prometheus metrics
+      prometheus:
+        prefer_name: true
+      
+      # Request ID for tracing
+      request-id:
+        header_name: X-Request-ID
+        include_in_response: true
+      
+      # Custom WAF rules via serverless function
+      serverless-pre-function:
+        phase: rewrite
+        functions:
+          - |
+            return function(conf, ctx)
+              local uri = ngx.var.uri or ""
+              local args = ngx.var.args or ""
+              local full_request = uri .. "?" .. args
+              
+              -- SQL Injection patterns
+              local sql_patterns = {
+                "union%s+select",
+                "select%s+.*%s+from",
+                "insert%s+into",
+                "delete%s+from",
+                "drop%s+table",
+                "or%s+1%s*=%s*1",
+                "and%s+1%s*=%s*1",
+                "'%s*or%s*'",
+                "exec%s*%(",
+                "xp_cmdshell"
+              }
+              
+              for _, pattern in ipairs(sql_patterns) do
+                if string.match(string.lower(full_request), pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "SQL Injection blocked by WAF", "code": 403, "rule": "942100"}')
+                  return ngx.exit(403)
+                end
+              end
+              
+              -- XSS patterns
+              local xss_patterns = {
+                "<script",
+                "javascript:",
+                "onerror%s*=",
+                "onload%s*=",
+                "onclick%s*=",
+                "onmouseover%s*=",
+                "<iframe",
+                "<img%s+.*onerror"
+              }
+              
+              for _, pattern in ipairs(xss_patterns) do
+                if string.match(string.lower(full_request), pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "XSS blocked by WAF", "code": 403, "rule": "941100"}')
+                  return ngx.exit(403)
+                end
+              end
+              
+              -- Path Traversal patterns
+              local traversal_patterns = {
+                "%.%.%/",
+                "%.%.\\",
+                "/etc/passwd",
+                "/etc/shadow",
+                "c:\\windows"
+              }
+              
+              for _, pattern in ipairs(traversal_patterns) do
+                if string.match(string.lower(full_request), pattern) then
+                  ngx.status = 403
+                  ngx.header["Content-Type"] = "application/json"
+                  ngx.say('{"error": "Path Traversal blocked by WAF", "code": 403, "rule": "930100"}')
+                  return ngx.exit(403)
+                end
+              end
+            end
+    
+    upstream:
+      type: roundrobin
+      nodes:
+        "host.docker.internal:3000": 1
+      timeout:
+        connect: 5
+        send: 10
+        read: 10
+
+# Health check route (bypass WAF)
+  - id: 2
+    uri: /health
+    name: health-check
+    plugins:
       prometheus:
         prefer_name: true
     upstream:
       type: roundrobin
       nodes:
-        "127.0.0.1:3000": 1
-
-upstreams:
-  - id: 1
-    name: backend
-    type: roundrobin
-    nodes:
-      "127.0.0.1:3000": 1
+        "host.docker.internal:3000": 1
 
 #END
