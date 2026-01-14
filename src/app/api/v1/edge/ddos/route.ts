@@ -7,11 +7,20 @@ export async function GET() {
     const stats = ddosMitigation.getStats();
     const config = ddosMitigation.getConfig();
     const blockedIPs = ddosMitigation.getBlockedIPs();
+    const autoScale = ddosMitigation.getAutoScaleStatus();
 
     // Format response
     const response = {
         status: stats.isUnderAttack ? 'under_attack' : 'protected',
         mitigationMode: stats.mitigationMode,
+
+        // Auto-scaling status
+        autoScale: {
+            enabled: autoScale.enabled,
+            level: autoScale.level,
+            multiplier: autoScale.multiplier,
+            avgTraffic: autoScale.avgTraffic,
+        },
 
         layer7: {
             requestsPerSecond: stats.requestsPerSecond,
@@ -80,6 +89,11 @@ export async function POST(request: NextRequest) {
         ddosMitigation.updateConfig(body.config);
     }
 
+    // Toggle auto-scaling
+    if (typeof body.autoScale === 'boolean') {
+        ddosMitigation.setAutoScale(body.autoScale);
+    }
+
     // Block specific IP
     if (body.blockIP) {
         ddosMitigation.blockIP(body.blockIP, body.duration);
@@ -93,6 +107,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
         success: true,
         config: ddosMitigation.getConfig(),
+        autoScale: ddosMitigation.getAutoScaleStatus(),
         stats: ddosMitigation.getStats(),
     });
 }

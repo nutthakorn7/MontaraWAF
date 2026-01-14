@@ -28,6 +28,7 @@ interface DDoSStats {
 
 export class DDoSMitigationService {
     private config: RateLimitConfig;
+    private baseConfig: RateLimitConfig; // Original config for scaling reference
     private ipTrackers: Map<string, IPTracker> = new Map();
     private globalStats = {
         totalRequests: 0,
@@ -36,18 +37,105 @@ export class DDoSMitigationService {
     };
     private mitigationMode: 'off' | 'auto' | 'challenge' | 'block' = 'auto';
     private cleanupInterval: NodeJS.Timeout | null = null;
+    private autoScaleInterval: NodeJS.Timeout | null = null;
+    private autoScaleEnabled: boolean = true;
+    private trafficHistory: number[] = [];
+    private currentScaleLevel: 'normal' | 'elevated' | 'high' | 'extreme' = 'normal';
 
     constructor(config?: Partial<RateLimitConfig>) {
-        this.config = {
+        this.baseConfig = {
             requestsPerSecond: 100,
             burstSize: 200,
             blockDuration: 300, // 5 minutes
             challengeThreshold: 50, // Challenge at 50% of limit
             ...config,
         };
+        this.config = { ...this.baseConfig };
 
         // Cleanup old entries every minute
         this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+
+        // Auto-scale check every 10 seconds
+        this.autoScaleInterval = setInterval(() => this.autoScale(), 10000);
+    }
+
+    // Auto-scale rate limits based on traffic
+    private autoScale(): void {
+        if (!this.autoScaleEnabled) return;
+
+        const stats = this.getStats();
+        this.trafficHistory.push(stats.requestsPerSecond);
+
+        // Keep last 30 samples (5 minutes)
+        if (this.trafficHistory.length > 30) {
+            this.trafficHistory.shift();
+        }
+
+        // Calculate average and peak
+        const avgTraffic = this.trafficHistory.reduce((a, b) => a + b, 0) / this.trafficHistory.length;
+        const peakTraffic = Math.max(...this.trafficHistory);
+        const baseLimit = this.baseConfig.requestsPerSecond;
+
+        // Determine scale level
+        let newLevel: 'normal' | 'elevated' | 'high' | 'extreme' = 'normal';
+        let multiplier = 1;
+
+        if (stats.isUnderAttack || peakTraffic > baseLimit * 2) {
+            newLevel = 'extreme';
+            multiplier = 0.25; // 25% of base limit
+        } else if (avgTraffic > baseLimit * 0.8 || stats.activeBlocks > 10) {
+            newLevel = 'high';
+            multiplier = 0.5; // 50% of base limit
+        } else if (avgTraffic > baseLimit * 0.5 || stats.activeBlocks > 3) {
+            newLevel = 'elevated';
+            multiplier = 0.75; // 75% of base limit
+        } else if (avgTraffic < baseLimit * 0.2 && stats.activeBlocks === 0) {
+            newLevel = 'normal';
+            multiplier = 1.5; // 150% of base limit (relaxed)
+        }
+
+        // Apply scaling if level changed
+        if (newLevel !== this.currentScaleLevel) {
+            this.currentScaleLevel = newLevel;
+            this.config = {
+                ...this.baseConfig,
+                requestsPerSecond: Math.round(this.baseConfig.requestsPerSecond * multiplier),
+                burstSize: Math.round(this.baseConfig.burstSize * multiplier),
+                challengeThreshold: Math.round(this.baseConfig.challengeThreshold * multiplier),
+            };
+            console.log(`[AutoScale] Level: ${newLevel}, Limit: ${this.config.requestsPerSecond} req/s`);
+        }
+    }
+
+    // Get auto-scale status
+    getAutoScaleStatus(): { enabled: boolean; level: string; multiplier: number; avgTraffic: number } {
+        const avgTraffic = this.trafficHistory.length > 0
+            ? this.trafficHistory.reduce((a, b) => a + b, 0) / this.trafficHistory.length
+            : 0;
+
+        const multipliers: Record<string, number> = {
+            normal: 1.5,
+            elevated: 0.75,
+            high: 0.5,
+            extreme: 0.25,
+        };
+
+        return {
+            enabled: this.autoScaleEnabled,
+            level: this.currentScaleLevel,
+            multiplier: multipliers[this.currentScaleLevel],
+            avgTraffic: Math.round(avgTraffic),
+        };
+    }
+
+    // Enable/disable auto-scaling
+    setAutoScale(enabled: boolean): void {
+        this.autoScaleEnabled = enabled;
+        if (!enabled) {
+            // Reset to base config
+            this.config = { ...this.baseConfig };
+            this.currentScaleLevel = 'normal';
+        }
     }
 
     // Track request from IP
