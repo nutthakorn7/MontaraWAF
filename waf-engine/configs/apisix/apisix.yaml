@@ -62,9 +62,47 @@ routes:
         functions:
           - |
             return function(conf, ctx)
+              local cjson = require("cjson.safe")
+              
               local uri = ngx.var.uri or ""
               local args = ngx.var.args or ""
+              local client_ip = ngx.var.remote_addr
               local full_request = uri .. "?" .. args
+              
+              -- CrowdSec LAPI Check (optional, continue if unreachable)
+              local crowdsec_url = "http://crowdsec:8080"
+              local bouncer_key = "7lKoHLDqBWtmwSEgJMNVsx7Q/A8XrlIo4p7UhnIv18A"
+              
+              local ok, http = pcall(require, "resty.http")
+              if ok then
+                local httpc = http.new()
+                httpc:set_timeout(500)  -- 500ms timeout
+                
+                local res, err = httpc:request_uri(crowdsec_url .. "/v1/decisions?ip=" .. client_ip, {
+                  method = "GET",
+                  headers = {
+                    ["X-Api-Key"] = bouncer_key,
+                  }
+                })
+                
+                if res and res.status == 200 and res.body then
+                  local decisions = cjson.decode(res.body)
+                  if decisions and type(decisions) == "table" and #decisions > 0 then
+                    local decision = decisions[1]
+                    if decision.type == "ban" then
+                      ngx.status = 403
+                      ngx.header["Content-Type"] = "application/json"
+                      ngx.say('{"error": "IP banned by CrowdSec", "code": 403, "reason": "' .. (decision.scenario or "unknown") .. '"}')
+                      return ngx.exit(403)
+                    elseif decision.type == "captcha" then
+                      ngx.status = 403
+                      ngx.header["Content-Type"] = "application/json"
+                      ngx.say('{"error": "Captcha required", "code": 403, "challenge": "captcha"}')
+                      return ngx.exit(403)
+                    end
+                  end
+                end
+              end
               
               -- URL decode function
               local function url_decode(str)
