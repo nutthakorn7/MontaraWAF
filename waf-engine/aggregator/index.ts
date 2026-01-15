@@ -1,7 +1,7 @@
 // Aggregator Service - Unified API for Dashboard
 // Pulls data from Cloudflare, CrowdSec, APISIX, Coraza
 
-import { CloudflareAdapter } from './adapters/cloudflare';
+import { CloudflareCDNAdapter } from './adapters/cloudflare';
 import { CrowdSecAdapter } from './adapters/crowdsec';
 import { APISIXAdapter } from './adapters/apisix';
 import { CorazaAdapter } from './adapters/coraza';
@@ -84,14 +84,14 @@ export interface AggregatorConfig {
 }
 
 export class Aggregator {
-    private cloudflare?: CloudflareAdapter;
+    private cloudflare?: CloudflareCDNAdapter;
     private crowdsec: CrowdSecAdapter;
     private apisix: APISIXAdapter;
     private coraza: CorazaAdapter;
 
     constructor(config: AggregatorConfig) {
         if (config.cloudflare?.enabled) {
-            this.cloudflare = new CloudflareAdapter(
+            this.cloudflare = new CloudflareCDNAdapter(
                 config.cloudflare.apiToken,
                 config.cloudflare.zoneId
             );
@@ -127,7 +127,16 @@ export class Aggregator {
 
     async getTrafficStats(timeRange: string): Promise<TrafficStats> {
         if (this.cloudflare) {
-            return this.cloudflare.getTrafficStats(timeRange);
+            const cdnStats = await this.cloudflare.getTrafficStats(timeRange);
+            return {
+                totalRequests: cdnStats.requests.total,
+                requestsBlocked: cdnStats.threats.total,
+                bandwidth: cdnStats.bandwidth.total,
+                cacheHitRate: cdnStats.requests.total > 0
+                    ? (cdnStats.requests.cached / cdnStats.requests.total) * 100
+                    : 0,
+                source: 'cloudflare',
+            };
         }
         return this.apisix.getTrafficStats(timeRange);
     }
@@ -145,16 +154,7 @@ export class Aggregator {
     }
 
     async getDDoSStats(timeRange: string): Promise<DDoSStats> {
-        if (this.cloudflare) {
-            const cfStats = await this.cloudflare.getDDoSStats(timeRange);
-            const csStats = await this.crowdsec.getDDoSStats(timeRange);
-            return {
-                attacks: cfStats.attacks + csStats.attacks,
-                mitigated: cfStats.mitigated + csStats.mitigated,
-                attackTypes: [...cfStats.attackTypes, ...csStats.attackTypes],
-                source: 'cloudflare+crowdsec',
-            };
-        }
+        // Note: CloudflareCDNAdapter doesn't have getDDoSStats - use CrowdSec only
         return this.crowdsec.getDDoSStats(timeRange);
     }
 

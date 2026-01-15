@@ -1,6 +1,6 @@
 // Coraza Adapter - Parses Coraza WAF logs
 
-import { SecurityStats, WAFStats } from '../index';
+import { SecurityStats, WAFStats } from './aggregator';
 import * as fs from 'fs';
 import * as readline from 'readline';
 

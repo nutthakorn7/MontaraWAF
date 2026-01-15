@@ -1,6 +1,6 @@
 // APISIX Adapter - Fetches data from APISIX Admin API
 
-import { TrafficStats, APIStats } from '../index';
+import { TrafficStats, APIStats } from './aggregator';
 
 export class APISIXAdapter {
     private adminUrl: string;

@@ -159,7 +159,8 @@ export default function Sidebar({ activeMenu, onMenuChange, collapsed, onToggleC
       <aside 
         className={`
           ${collapsed ? 'w-16' : 'w-64'} 
-          bg-imperva-dark-sidebar h-screen flex-col transition-all duration-300 relative
+          bg-white dark:bg-imperva-dark-sidebar h-screen flex-col transition-all duration-300 relative
+          border-r border-gray-200 dark:border-transparent
           hidden lg:flex
           ${isMobileOpen ? '!flex fixed z-50 left-0 top-0' : ''}
         `}
@@ -170,7 +171,7 @@ export default function Sidebar({ activeMenu, onMenuChange, collapsed, onToggleC
         {isMobileOpen && (
           <button 
             onClick={onMobileClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white lg:hidden"
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white lg:hidden"
           >
             <X className="w-5 h-5" />
           </button>
@@ -179,7 +180,7 @@ export default function Sidebar({ activeMenu, onMenuChange, collapsed, onToggleC
         {/* Collapse Toggle - Desktop only */}
         <button 
           onClick={onToggleCollapse}
-          className="absolute -right-3 top-20 w-6 h-6 bg-imperva-dark-sidebar border border-gray-700 rounded-full items-center justify-center text-gray-400 hover:text-white z-50 hidden lg:flex"
+          className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-imperva-dark-sidebar border border-gray-300 dark:border-gray-700 rounded-full items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white z-50 hidden lg:flex shadow-sm"
         >
         <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
       </button>
@@ -189,7 +190,7 @@ export default function Sidebar({ activeMenu, onMenuChange, collapsed, onToggleC
         {menuItems.map((group, groupIdx) => (
           <div key={groupIdx} className={collapsed ? 'mb-1' : 'mb-4'}>
             {group.section && !collapsed && (
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                 {group.section}
               </div>
             )}
@@ -257,8 +258,8 @@ export default function Sidebar({ activeMenu, onMenuChange, collapsed, onToggleC
 
       {/* Footer */}
       {!collapsed && (
-        <div className="p-4 border-t border-gray-800">
-          <p className="text-xs text-gray-500">Copyright © 2024 Montara</p>
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-500">Copyright © 2024 Montara</p>
         </div>
       )}
     </aside>

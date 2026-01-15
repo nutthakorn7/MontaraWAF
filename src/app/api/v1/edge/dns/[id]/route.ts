@@ -1,13 +1,15 @@
 // DNS Records by ID API
 import { NextRequest, NextResponse } from 'next/server';
 
-interface RouteParams { params: { id: string } }
+interface RouteParams { params: Promise<{ id: string }> }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    return NextResponse.json({ success: true, message: `DNS record ${params.id} deleted` });
+    const { id } = await params;
+    return NextResponse.json({ success: true, message: `DNS record ${id} deleted` });
 }
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+    const { id } = await params;
     const body = await request.json();
-    return NextResponse.json({ id: params.id, ...body, updatedAt: new Date().toISOString() });
+    return NextResponse.json({ id, ...body, updatedAt: new Date().toISOString() });
 }

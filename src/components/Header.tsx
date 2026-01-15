@@ -51,11 +51,11 @@ export default function Header({ accountName, activeTab, onTabChange, onMenuTogg
   };
 
   return (
-    <header className="h-14 bg-imperva-dark-header border-b border-gray-800 flex items-center px-4 relative">
+    <header className="h-14 bg-white dark:bg-imperva-dark-header border-b border-gray-200 dark:border-gray-800 flex items-center px-4 relative shadow-sm dark:shadow-none">
       {/* Mobile Menu Button */}
       <button 
         onClick={onMenuToggle}
-        className="lg:hidden p-2 text-gray-400 hover:text-white mr-2"
+        className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mr-2"
         aria-label="Toggle menu"
       >
         <Menu className="w-6 h-6" />
@@ -67,13 +67,13 @@ export default function Header({ accountName, activeTab, onTabChange, onMenuTogg
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">M</span>
           </div>
-          <span className="text-white font-semibold text-lg">montara</span>
+          <span className="text-gray-900 dark:text-white font-semibold text-lg">montara</span>
         </div>
         
         {/* Account Selector */}
-        <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 rounded text-sm text-gray-300 hover:bg-gray-700">
+        <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
           <span className="text-xs text-gray-500">CURRENT ACCOUNT</span>
-          <span className="font-medium text-white">{accountName}</span>
+          <span className="font-medium text-gray-900 dark:text-white">{accountName}</span>
           <ChevronDown className="w-4 h-4" />
         </button>
       </div>
@@ -87,7 +87,7 @@ export default function Header({ accountName, activeTab, onTabChange, onMenuTogg
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               pathname === tab.href 
                 ? 'bg-imperva-blue text-white' 
-                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -101,7 +101,7 @@ export default function Header({ accountName, activeTab, onTabChange, onMenuTogg
         {/* Theme Toggle */}
         <button 
           onClick={toggleTheme}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
         >
           {theme === 'light' ? (
@@ -127,7 +127,7 @@ export default function Header({ accountName, activeTab, onTabChange, onMenuTogg
         <div className="relative">
           <button 
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white px-2 py-1 rounded"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded"
           >
             <User className="w-5 h-5" />
             <span className="text-sm">{user?.name || 'Account'}</span>
@@ -136,7 +136,7 @@ export default function Header({ accountName, activeTab, onTabChange, onMenuTogg
 
           {/* Dropdown Menu */}
           {showUserMenu && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+            <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
               {isAuthenticated ? (
                 <>
                   <div className="px-4 py-2 border-b border-gray-100">

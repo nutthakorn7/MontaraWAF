@@ -1,6 +1,6 @@
 // CrowdSec Adapter - Fetches data from CrowdSec API
 
-import { SecurityStats, DDoSStats, BotStats } from '../index';
+import { SecurityStats, DDoSStats, BotStats } from './aggregator';
 
 export class CrowdSecAdapter {
     private apiUrl: string;

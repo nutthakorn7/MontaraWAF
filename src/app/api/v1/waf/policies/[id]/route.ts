@@ -26,12 +26,13 @@ async function syncToCoraza(): Promise<void> {
 }
 
 interface RouteParams {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 // GET /api/v1/waf/policies/[id] - Get single policy
 export async function GET(request: NextRequest, { params }: RouteParams) {
-    const policy = policies.find(p => p.id === params.id);
+    const { id } = await params;
+    const policy = policies.find(p => p.id === id);
 
     if (!policy) {
         return NextResponse.json({ error: 'Policy not found' }, { status: 404 });
@@ -43,7 +44,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/v1/waf/policies/[id] - Update policy
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     try {
-        const index = policies.findIndex(p => p.id === params.id);
+        const { id } = await params;
+        const index = policies.findIndex(p => p.id === id);
 
         if (index === -1) {
             return NextResponse.json({ error: 'Policy not found' }, { status: 404 });
@@ -80,7 +82,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 // DELETE /api/v1/waf/policies/[id] - Delete policy
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    const index = policies.findIndex(p => p.id === params.id);
+    const { id } = await params;
+    const index = policies.findIndex(p => p.id === id);
 
     if (index === -1) {
         return NextResponse.json({ error: 'Policy not found' }, { status: 404 });
@@ -94,7 +97,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
 // PATCH /api/v1/waf/policies/[id] - Toggle policy enabled/disabled
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-    const index = policies.findIndex(p => p.id === params.id);
+    const { id } = await params;
+    const index = policies.findIndex(p => p.id === id);
 
     if (index === -1) {
         return NextResponse.json({ error: 'Policy not found' }, { status: 404 });

@@ -111,14 +111,23 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
-  color: #d1d5db;
+  color: #4b5563; /* light mode - gray-600 */
   border-radius: 0.5rem;
   transition: all 0.2s;
   cursor: pointer;
   min-height: 40px;
 }
 
+[data-theme="dark"] .sidebar-item {
+  color: #d1d5db; /* dark mode - gray-300 */
+}
+
 .sidebar-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827; /* gray-900 */
+}
+
+[data-theme="dark"] .sidebar-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
 }

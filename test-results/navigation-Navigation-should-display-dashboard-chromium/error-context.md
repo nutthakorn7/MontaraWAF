@@ -1,0 +1,434 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - complementary [ref=e13]:
+      - button [ref=e14]:
+        - img [ref=e15]
+      - navigation [ref=e17]:
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /
+          - img [ref=e21]
+        - generic [ref=e24]:
+          - button "Security" [ref=e26] [cursor=pointer]:
+            - img [ref=e27]
+          - button "Performance" [ref=e30] [cursor=pointer]:
+            - img [ref=e31]
+          - button "Edge" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+          - button "Analytics" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+          - button "Settings" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+    - generic [ref=e46]:
+      - banner [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e51]: M
+            - generic [ref=e52]: montara
+          - button "CURRENT ACCOUNT Your_Account_Name" [ref=e53]:
+            - generic [ref=e54]: CURRENT ACCOUNT
+            - generic [ref=e55]: Your_Account_Name
+            - img [ref=e56]
+        - navigation [ref=e58]:
+          - button "Home" [ref=e59]:
+            - img [ref=e60]
+            - text: Home
+          - button "Application" [ref=e63]:
+            - img [ref=e64]
+            - text: Application
+          - button "Network" [ref=e67]:
+            - img [ref=e68]
+            - text: Network
+          - button "Data" [ref=e73]:
+            - img [ref=e74]
+            - text: Data
+        - generic [ref=e78]:
+          - button "Dark" [ref=e79]:
+            - img [ref=e80]
+            - generic [ref=e82]: Dark
+          - button "Search ⌘K" [ref=e83]:
+            - img [ref=e84]
+            - generic [ref=e87]: Search
+            - generic [ref=e88]: ⌘K
+          - button "? Help" [ref=e90]:
+            - generic [ref=e91]: "? Help"
+            - img [ref=e92]
+          - button "Test User" [ref=e95]:
+            - img [ref=e96]
+            - generic [ref=e99]: Test User
+            - img [ref=e100]
+      - generic [ref=e102]:
+        - navigation [ref=e103]:
+          - generic [ref=e104] [cursor=pointer]: Home
+          - img [ref=e105]
+          - generic [ref=e107]: Dashboard
+        - generic [ref=e109]:
+          - generic [ref=e110]: Updated 1:12:52 AM
+          - button "Refresh" [ref=e111]:
+            - img [ref=e112]
+            - text: Refresh
+      - main [ref=e117]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: Total Requests
+              - generic [ref=e123]: 2.4M
+            - generic [ref=e124]:
+              - generic [ref=e125]: Blocked Attacks
+              - generic [ref=e126]: 45.2K
+            - generic [ref=e127]:
+              - generic [ref=e128]: Active Rules
+              - generic [ref=e129]: "156"
+            - generic [ref=e130]:
+              - generic [ref=e131]: Sites Protected
+              - generic [ref=e132]: "24"
+          - generic [ref=e133]:
+            - generic [ref=e135]:
+              - img [ref=e136]
+              - generic [ref=e138]: Time Picker
+              - button "Last 14 Days" [ref=e139]:
+                - text: Last 14 Days
+                - img [ref=e140]
+            - button "Download report" [ref=e143]:
+              - img [ref=e144]
+              - text: Download report
+              - img [ref=e147]
+            - button "Arrange" [ref=e149]:
+              - img [ref=e150]
+              - text: Arrange
+        - generic [ref=e155]:
+          - heading "Security" [level=2] [ref=e156]
+          - link "Security Dashboard" [ref=e157] [cursor=pointer]:
+            - /url: /security-events
+        - generic [ref=e159]:
+          - generic [ref=e161]:
+            - heading "WAF Protection" [level=3] [ref=e162]
+            - button [ref=e164]:
+              - img [ref=e165]
+          - generic [ref=e169]:
+            - generic [ref=e170]: 99.8%
+            - generic [ref=e171]:
+              - img [ref=e172]
+              - text: 0.2%
+            - generic [ref=e174]: sessions
+          - generic [ref=e180]:
+            - generic [ref=e181]:
+              - generic [ref=e183]: SQL Injection
+              - generic [ref=e184]: 12,456
+            - generic [ref=e185]:
+              - generic [ref=e187]: XSS Attacks
+              - generic [ref=e188]: 8,234
+            - generic [ref=e189]:
+              - generic [ref=e191]: Path Traversal
+              - generic [ref=e192]: 3,567
+          - generic [ref=e193]:
+            - button "View details" [ref=e194]:
+              - text: View details
+              - img [ref=e195]
+            - button "Configure rules" [ref=e199]:
+              - text: Configure rules
+              - img [ref=e200]
+        - generic [ref=e204]:
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - heading "Security Events graph" [level=3] [ref=e208]
+              - generic [ref=e209]:
+                - button "Toggle fullscreen" [ref=e210]:
+                  - img [ref=e211]
+                - button "Download chart data" [ref=e213]:
+                  - img [ref=e214]
+            - generic [ref=e219]:
+              - application [ref=e220]:
+                - generic [ref=e233]:
+                  - generic [ref=e234]:
+                    - generic [ref=e236]: 01:00
+                    - generic [ref=e238]: 03:00
+                    - generic [ref=e240]: 05:00
+                    - generic [ref=e242]: 07:00
+                    - generic [ref=e244]: 09:00
+                    - generic [ref=e246]: 11:00
+                    - generic [ref=e248]: 13:00
+                    - generic [ref=e250]: 15:00
+                    - generic [ref=e252]: 17:00
+                    - generic [ref=e254]: 19:00
+                    - generic [ref=e256]: 21:00
+                    - generic [ref=e258]: 23:00
+                  - generic [ref=e259]:
+                    - generic [ref=e261]: "0"
+                    - generic [ref=e263]: "400"
+                    - generic [ref=e265]: "800"
+                    - generic [ref=e267]: 1.2k
+                    - generic [ref=e269]: 1.6k
+              - list [ref=e271]:
+                - listitem [ref=e272]:
+                  - img "[object Object] legend icon" [ref=e273]
+                  - generic [ref=e275]: DDoS attacks
+                - listitem [ref=e276]:
+                  - img "[object Object] legend icon" [ref=e277]
+                  - generic [ref=e279]: Mitigated Bot Attacks
+                - listitem [ref=e280]:
+                  - img "[object Object] legend icon" [ref=e281]
+                  - generic [ref=e283]: WAF events
+          - generic [ref=e285]:
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - heading "Top Attacked Websites" [level=3] [ref=e288]
+                - paragraph [ref=e289]: By Total Events ▼
+              - button "Expand" [ref=e290]:
+                - img [ref=e291]
+                - text: Expand
+            - table [ref=e296]:
+              - rowgroup [ref=e297]:
+                - row "Website Events" [ref=e298]:
+                  - columnheader "Website" [ref=e299]
+                  - columnheader "Events" [ref=e300]
+              - rowgroup [ref=e301]:
+                - row "api.example.com 15K 12.5%" [ref=e302] [cursor=pointer]:
+                  - cell "api.example.com" [ref=e303]:
+                    - generic [ref=e304]:
+                      - text: api.example.com
+                      - img [ref=e305]
+                  - cell "15K 12.5%" [ref=e309]:
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: 15K
+                      - generic [ref=e312]:
+                        - img [ref=e313]
+                        - text: 12.5%
+                - row "app.example.com 12K -5.2%" [ref=e315] [cursor=pointer]:
+                  - cell "app.example.com" [ref=e316]:
+                    - generic [ref=e317]:
+                      - text: app.example.com
+                      - img [ref=e318]
+                  - cell "12K -5.2%" [ref=e322]:
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: 12K
+                      - generic [ref=e325]:
+                        - img [ref=e326]
+                        - text: "-5.2%"
+                - row "www.example.com 9K 3.1%" [ref=e328] [cursor=pointer]:
+                  - cell "www.example.com" [ref=e329]:
+                    - generic [ref=e330]:
+                      - text: www.example.com
+                      - img [ref=e331]
+                  - cell "9K 3.1%" [ref=e335]:
+                    - generic [ref=e336]:
+                      - generic [ref=e337]: 9K
+                      - generic [ref=e338]:
+                        - img [ref=e339]
+                        - text: 3.1%
+                - row "cdn.example.com 7K 18.9%" [ref=e341] [cursor=pointer]:
+                  - cell "cdn.example.com" [ref=e342]:
+                    - generic [ref=e343]:
+                      - text: cdn.example.com
+                      - img [ref=e344]
+                  - cell "7K 18.9%" [ref=e348]:
+                    - generic [ref=e349]:
+                      - generic [ref=e350]: 7K
+                      - generic [ref=e351]:
+                        - img [ref=e352]
+                        - text: 18.9%
+                - row "auth.example.com 4K -2.7%" [ref=e354] [cursor=pointer]:
+                  - cell "auth.example.com" [ref=e355]:
+                    - generic [ref=e356]:
+                      - text: auth.example.com
+                      - img [ref=e357]
+                  - cell "4K -2.7%" [ref=e361]:
+                    - generic [ref=e362]:
+                      - generic [ref=e363]: 4K
+                      - generic [ref=e364]:
+                        - img [ref=e365]
+                        - text: "-2.7%"
+        - generic [ref=e367]:
+          - generic [ref=e368]:
+            - generic [ref=e369]:
+              - heading "Which security events affected my websites?" [level=3] [ref=e370]
+              - button [ref=e371]:
+                - img [ref=e372]
+            - generic [ref=e376]:
+              - generic [ref=e377]:
+                - heading "Distribution ⓘ" [level=4] [ref=e378]:
+                  - text: Distribution
+                  - generic [ref=e379]: ⓘ
+                - generic [ref=e380]:
+                  - generic [ref=e381]:
+                    - paragraph [ref=e382]: All requests
+                    - generic [ref=e383]:
+                      - generic [ref=e384]: 15,234,567
+                      - generic [ref=e385]:
+                        - img [ref=e386]
+                        - text: 12.5%
+                  - generic [ref=e388]:
+                    - paragraph [ref=e389]: Requests blocked
+                    - generic [ref=e390]:
+                      - generic [ref=e391]: 45,678
+                      - generic [ref=e392]:
+                        - img [ref=e393]
+                        - text: 5.2%
+                  - generic [ref=e395]:
+                    - paragraph [ref=e396]: WAF Sessions ⓘ
+                    - generic [ref=e397]:
+                      - generic [ref=e398]: 1,234
+                      - generic [ref=e399]:
+                        - img [ref=e400]
+                        - text: 8.3%
+              - generic [ref=e403]:
+                - img [ref=e404]
+                - generic [ref=e409]:
+                  - text: WAF sessions
+                  - text: by violation type
+              - generic [ref=e410]:
+                - generic [ref=e411]:
+                  - heading "Security settings ⓘ" [level=4] [ref=e412]:
+                    - text: Security settings
+                    - generic [ref=e413]: ⓘ
+                  - link "View settings" [ref=e414] [cursor=pointer]:
+                    - /url: /policies
+                - generic [ref=e415]:
+                  - button "WAF policies" [ref=e416]
+                  - button "Security rules" [ref=e417]
+                - table [ref=e418]:
+                  - rowgroup [ref=e419]:
+                    - row "Type Sessions Current setting" [ref=e420]:
+                      - columnheader "Type" [ref=e421]
+                      - columnheader "Sessions" [ref=e422]
+                      - columnheader "Current setting" [ref=e423]
+                  - rowgroup [ref=e424]:
+                    - row "WAF Mode 1234 Block" [ref=e425]:
+                      - cell "WAF Mode" [ref=e426]:
+                        - link "WAF Mode" [ref=e427] [cursor=pointer]:
+                          - /url: /policies
+                      - cell "1234" [ref=e428]
+                      - cell "Block" [ref=e429]
+                    - row "Sensitivity 567 High" [ref=e430]:
+                      - cell "Sensitivity" [ref=e431]:
+                        - link "Sensitivity" [ref=e432] [cursor=pointer]:
+                          - /url: /policies
+                      - cell "567" [ref=e433]
+                      - cell "High" [ref=e434]
+                    - row "Rate Limit 890 100 req/min" [ref=e435]:
+                      - cell "Rate Limit" [ref=e436]:
+                        - link "Rate Limit" [ref=e437] [cursor=pointer]:
+                          - /url: /policies
+                      - cell "890" [ref=e438]
+                      - cell "100 req/min" [ref=e439]
+          - generic [ref=e440]:
+            - heading "Security Events by Country" [level=3] [ref=e441]
+            - generic [ref=e442]:
+              - img [ref=e443]
+              - generic [ref=e481]:
+                - generic [ref=e482]:
+                  - generic [ref=e484]: United States
+                  - generic [ref=e485]: 5,342
+                - generic [ref=e486]:
+                  - generic [ref=e488]: China
+                  - generic [ref=e489]: 4,521
+                - generic [ref=e490]:
+                  - generic [ref=e492]: Russia
+                  - generic [ref=e493]: 3,890
+                - generic [ref=e494]:
+                  - generic [ref=e496]: Germany
+                  - generic [ref=e497]: 2,456
+                - generic [ref=e498]:
+                  - generic [ref=e500]: Brazil
+                  - generic [ref=e501]: 1,987
+            - generic [ref=e502]:
+              - generic [ref=e505]: Critical (>5K)
+              - generic [ref=e508]: High (>3K)
+              - generic [ref=e511]: Medium (>1K)
+              - generic [ref=e514]: Low (>500)
+              - generic [ref=e517]: Minimal
+        - generic [ref=e519]:
+          - generic [ref=e520]:
+            - generic [ref=e521]:
+              - img [ref=e522]
+              - heading "Live Security Events" [level=3] [ref=e524]
+              - generic [ref=e525]: (25 events)
+            - generic [ref=e526]:
+              - generic [ref=e527]:
+                - img [ref=e528]
+                - text: Disconnected
+              - button "Toggle notifications" [ref=e535]:
+                - img [ref=e536]
+              - button "Clear events" [ref=e539]:
+                - img [ref=e540]
+          - generic [ref=e543]:
+            - generic [ref=e547] [cursor=pointer]:
+              - generic [ref=e548]:
+                - generic [ref=e549]: DDoS Attack
+                - generic [ref=e550]: 01:12:59 AM
+              - generic [ref=e551]:
+                - generic [ref=e552]: MEDIUM
+                - generic [ref=e553]: 10.0.0.55 → /search
+                - generic [ref=e554]: Monitored
+              - paragraph [ref=e555]: Known attack signature detected
+            - generic [ref=e559] [cursor=pointer]:
+              - generic [ref=e560]:
+                - generic [ref=e561]: XSS Attack
+                - generic [ref=e562]: 01:12:59 AM
+              - generic [ref=e563]:
+                - generic [ref=e564]: CRITICAL
+                - generic [ref=e565]: 91.134.232.89 → /search
+                - generic [ref=e566]: Alerted
+              - paragraph [ref=e567]: Known attack signature detected
+            - generic [ref=e571] [cursor=pointer]:
+              - generic [ref=e572]:
+                - generic [ref=e573]: DDoS Attack
+                - generic [ref=e574]: 01:12:59 AM
+              - generic [ref=e575]:
+                - generic [ref=e576]: MEDIUM
+                - generic [ref=e577]: 10.0.0.55 → /api/users
+                - generic [ref=e578]: Monitored
+              - paragraph [ref=e579]: Known attack signature detected
+            - generic [ref=e583] [cursor=pointer]:
+              - generic [ref=e584]:
+                - generic [ref=e585]: DDoS Attack
+                - generic [ref=e586]: 01:12:59 AM
+              - generic [ref=e587]:
+                - generic [ref=e588]: CRITICAL
+                - generic [ref=e589]: 172.16.0.25 → /search
+                - generic [ref=e590]: Alerted
+              - paragraph [ref=e591]: Known attack signature detected
+            - generic [ref=e595] [cursor=pointer]:
+              - generic [ref=e596]:
+                - generic [ref=e597]: Bot Activity
+                - generic [ref=e598]: 01:12:59 AM
+              - generic [ref=e599]:
+                - generic [ref=e600]: MEDIUM
+                - generic [ref=e601]: 192.168.1.100 → /login
+                - generic [ref=e602]: Alerted
+              - paragraph [ref=e603]: Known attack signature detected
+            - generic [ref=e607] [cursor=pointer]:
+              - generic [ref=e608]:
+                - generic [ref=e609]: XSS Attack
+                - generic [ref=e610]: 01:12:59 AM
+              - generic [ref=e611]:
+                - generic [ref=e612]: LOW
+                - generic [ref=e613]: 45.33.32.156 → /checkout
+                - generic [ref=e614]: Alerted
+              - paragraph [ref=e615]: Known attack signature detected
+            - generic [ref=e619] [cursor=pointer]:
+              - generic [ref=e620]:
+                - generic [ref=e621]: Bot Activity
+                - generic [ref=e622]: 01:12:59 AM
+              - generic [ref=e623]:
+                - generic [ref=e624]: MEDIUM
+                - generic [ref=e625]: 172.16.0.25 → /checkout
+                - generic [ref=e626]: Alerted
+              - paragraph [ref=e627]: Known attack signature detected
+            - generic [ref=e631] [cursor=pointer]:
+              - generic [ref=e632]:
+                - generic [ref=e633]: DDoS Attack
+                - generic [ref=e634]: 01:12:59 AM
+              - generic [ref=e635]:
+                - generic [ref=e636]: CRITICAL
+                - generic [ref=e637]: 192.168.1.100 → /admin
+                - generic [ref=e638]: Blocked
+              - paragraph [ref=e639]: Known attack signature detected
+          - button "View all 25 events →" [ref=e641]
+  - generic [ref=e642]: "0"
+```
